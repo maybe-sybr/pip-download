@@ -20,7 +20,6 @@ REQUIRES = [
     'packaging',
     'retrying',
     'pip-api',
-    'tzlocal',
     'pip',
     'appdirs'
 ]

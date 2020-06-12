@@ -22,7 +22,6 @@ from pipdownload.utils import (
     quiet_download,
     resolve_package_file,
 )
-from tzlocal import get_localzone
 
 sess = requests.Session()
 session = CacheControl(sess)
@@ -153,10 +152,6 @@ def pipdownload(
             platform_tags = settings_dict.get("platform-tags", None)
             if platform_tags:
                 click.echo(f"Using `platform-tags` in config file.")
-
-    tz = get_localzone()
-    if tz.zone in ["Asia/Shanghai", "Asia/Chongqing"]:
-        index_url = "https://mirrors.aliyun.com/pypi/simple/"
 
     if whl_suffixes:
         warnings.warn(
