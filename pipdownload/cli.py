@@ -25,7 +25,6 @@ from pipdownload.utils import (
     quiet_download,
     resolve_package_file,
 )
-from tzlocal import get_localzone
 
 sess = requests.Session()
 sess.mount("file://", requests_file.FileAdapter())
@@ -167,10 +166,6 @@ def pipdownload(
             if platform_tags:
                 click.echo(f"Using `platform-tags` in config file.")
 
-    tz = get_localzone()
-    if tz.zone in ["Asia/Shanghai", "Asia/Chongqing"]:
-        index_url = "https://mirrors.aliyun.com/pypi/simple/"
-
     if whl_suffixes:
         warnings.warn(
             "Option '-s/--suffix' has been deprecated. Please use '-p/--platform-tag' instead."
@@ -196,13 +191,9 @@ def pipdownload(
         packages_extra = {str(value) for value in packages_extra_dict.values()}
     else:
         packages_extra = set()
-    for package in itertools.chain(packages_extra, packages):
-        with TempDirectory(delete=True) as directory:
-            logger.info(
-                "We are using pip download command to download package %s" % package
-            )
-            logger.info("-" * 50)
 
+    if True:    # XXX: To minimise diff
+        with TempDirectory(delete=True) as directory:
             find_links = tuple(
                 # If there is no scheme value, we assume it's a path which
                 # needs to be rendered as a URI
@@ -220,7 +211,7 @@ def pipdownload(
                     index_url,
                     "--dest",
                     directory.path,
-                    package,
+                    *itertools.chain(packages_extra, packages),
                 ]
                 command += [
                     "--find-links={}".format(fl_val)
@@ -229,12 +220,8 @@ def pipdownload(
                 if quiet:
                     command.extend(["--progress-bar", "off", "-qqq"])
                 subprocess.check_call(command)
-            except subprocess.CalledProcessError as e:
-                logger.error(
-                    "Sorry, we can not use pip download to download the package %s,"
-                    " and Exception is below" % package
-                )
-                logger.error(e)
+            except subprocess.CalledProcessError:
+                logger.exception("Failed to download packages using pip")
                 raise
             file_names = os.listdir(directory.path)
 
