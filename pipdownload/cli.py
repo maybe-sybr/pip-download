@@ -183,13 +183,9 @@ def pipdownload(
         packages_extra = {str(value) for value in packages_extra_dict.values()}
     else:
         packages_extra = set()
-    for package in itertools.chain(packages_extra, packages):
-        with TempDirectory(delete=True) as directory:
-            logger.info(
-                "We are using pip download command to download package %s" % package
-            )
-            logger.info("-" * 50)
 
+    if True:    # XXX: To minimise diff
+        with TempDirectory(delete=True) as directory:
             try:
                 command = [
                     sys.executable,
@@ -200,17 +196,13 @@ def pipdownload(
                     index_url,
                     "--dest",
                     directory.path,
-                    package,
+                    *itertools.chain(packages_extra, packages),
                 ]
                 if quiet:
                     command.extend(["--progress-bar", "off", "-qqq"])
                 subprocess.check_call(command)
-            except subprocess.CalledProcessError as e:
-                logger.error(
-                    "Sorry, we can not use pip download to download the package %s,"
-                    " and Exception is below" % package
-                )
-                logger.error(e)
+            except subprocess.CalledProcessError:
+                logger.exception("Failed to download packages using pip")
                 raise
             file_names = os.listdir(directory.path)
 
